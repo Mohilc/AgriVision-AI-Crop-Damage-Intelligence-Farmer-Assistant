@@ -249,6 +249,120 @@ def get_chat_history_for_analysis(analysis_id: int, limit: int = 10) -> List[Dic
         return [{"role": r["role"], "content": r["message_text"]} for r in rows]
 
 
+def get_chat_history_for_user(telegram_user_id: str, limit: int = 10) -> List[Dict[str, str]]:
+    """Retrieves recent conversation messages for a user across all queries."""
+    init_db()
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT role, message_text FROM chat_messages
+            WHERE telegram_user_id = ?
+            ORDER BY id DESC LIMIT ?
+        """, (str(telegram_user_id), limit))
+        rows = cursor.fetchall()
+        # Return in chronological order
+        return [{"role": r["role"], "content": r["message_text"]} for r in reversed(rows)]
+
+
+def seed_sample_data():
+    """Seeds realistic field inspection records if the database has few entries."""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM analyses")
+        count = cursor.fetchone()[0]
+        if count >= 4:
+            return
+
+    samples = [
+        {
+            "crop_identified": "Tomato",
+            "damage_detected": True,
+            "possible_damage_types": ["Disease"],
+            "possible_cause": "Late Blight (Phytophthora infestans) fungal-like infection.",
+            "severity": "Moderate",
+            "estimated_visible_damage_percentage": "25–35%",
+            "affected_regions": ["Lower canopy", "Central leaf margins"],
+            "visible_symptoms": ["Dark water-soaked necrotic lesions", "Pale green halos", "Leaf curling"],
+            "confidence": "High",
+            "recommended_next_steps": [
+                "Remove and safely destroy heavily infected lower foliage.",
+                "Avoid overhead sprinkler irrigation; irrigate at soil root level.",
+                "Apply organic copper-based fungicide or contact protectant spray.",
+                "Consult local extension officer for weather-forecast spray timing."
+            ],
+            "limitations": ["Visual diagnosis; laboratory sporulation test recommended for 100% confirmation."]
+        },
+        {
+            "crop_identified": "Maize (Corn)",
+            "damage_detected": True,
+            "possible_damage_types": ["Pest"],
+            "possible_cause": "Fall Armyworm (Spodoptera frugiperda) larval feeding.",
+            "severity": "High",
+            "estimated_visible_damage_percentage": "45–55%",
+            "affected_regions": ["Central whorl", "Upper leaf blades"],
+            "visible_symptoms": ["Window-pane feeding marks", "Ragged leaf margins", "Moist sawdust-like frass in whorl"],
+            "confidence": "High",
+            "recommended_next_steps": [
+                "Inspect whorls for active caterpillars in early morning or evening.",
+                "Apply Bacillus thuringiensis (Bt) or neem-based biopesticide into whorls.",
+                "Install pheromone traps (4–5 per acre) for adult moth monitoring.",
+                "Crush visible egg masses found on leaf undersides."
+            ],
+            "limitations": ["Caterpillar instar stage requires physical extraction to identify exactly."]
+        },
+        {
+            "crop_identified": "Wheat",
+            "damage_detected": True,
+            "possible_damage_types": ["Disease"],
+            "possible_cause": "Yellow / Stripe Rust (Puccinia striiformis).",
+            "severity": "Low",
+            "estimated_visible_damage_percentage": "10–15%",
+            "affected_regions": ["Middle leaf blades"],
+            "visible_symptoms": ["Yellow-orange pustules in linear stripes along veins", "Chlorotic streaking"],
+            "confidence": "High",
+            "recommended_next_steps": [
+                "Monitor surrounding field rows for rapid spore spread in cool, humid weather.",
+                "Avoid excessive nitrogen fertilizer which exacerbates vegetative rust growth.",
+                "Prepare triazole-based fungicide spray if rust spots exceed economic threshold."
+            ],
+            "limitations": ["Spore density varies rapidly with ambient temperature and dew duration."]
+        },
+        {
+            "crop_identified": "Paddy / Rice",
+            "damage_detected": False,
+            "possible_damage_types": [],
+            "possible_cause": "Healthy crop canopy with no significant visible damage.",
+            "severity": "None",
+            "estimated_visible_damage_percentage": "< 5%",
+            "affected_regions": ["Uniform foliage"],
+            "visible_symptoms": ["Vibrant green leaves", "Uniform tillering", "Healthy panicle emergence"],
+            "confidence": "High",
+            "recommended_next_steps": [
+                "Maintain optimal 2–5 cm water depth during panicle development.",
+                "Inspect leaf sheath bases weekly for early sheath blight or brown planthopper.",
+                "Continue standard balanced NPK fertilization schedule."
+            ],
+            "limitations": ["Sub-surface root health cannot be inspected from canopy photo."]
+        }
+    ]
+
+    for item in samples:
+        safe_name = "".join(c if c.isalnum() else "_" for c in item['crop_identified'].lower())
+        dummy_img = os.path.join(UPLOADS_DIR, f"sample_{safe_name}.jpg")
+        if not os.path.exists(dummy_img):
+            # Create a simple placeholder image file
+            from PIL import Image
+            img = Image.new("RGB", (200, 200), color=(34, 139, 34) if not item["damage_detected"] else (160, 82, 45))
+            img.save(dummy_img)
+
+        save_analysis(
+            data=item,
+            image_path=dummy_img,
+            source="demo_seed",
+            username="AgriVision Demo"
+        )
+
+
 def get_dashboard_metrics() -> Dict[str, Any]:
     """Computes summary statistics for the Streamlit dashboard."""
     init_db()
@@ -282,3 +396,4 @@ def get_dashboard_metrics() -> Dict[str, Any]:
             "severity_distribution": severity_dist,
             "top_crops": top_crops
         }
+

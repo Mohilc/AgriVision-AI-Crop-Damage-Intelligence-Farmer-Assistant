@@ -1,6 +1,6 @@
 """
 AgriVision - Telegram Bot Interface
-Handles farmer interactions, image processing, AI analysis, follow-up Q&A, and PDF reports.
+Handles farmer interactions, multimodal image processing, text agronomic Q&A, and PDF reports.
 """
 
 import os
@@ -62,46 +62,44 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     welcome_msg = f"""🌿 *Welcome to AgriVision, {first_name}!*
 
-AgriVision is an AI-powered agricultural damage detection, quantification, and reporting assistant.
+AgriVision is your 24/7 AI-powered Agricultural Intelligence & Crop Health Assistant.
 
-📸 *How it works:*
-1. Send a clear photo of your crop or field.
-2. AI examines visible symptoms (disease, pest, animal, flood, weather damage).
-3. Receive an instant visual damage assessment and recommended next steps.
-4. Ask follow-up questions directly or download a PDF report!
+🌟 *How I can assist you:*
+1. 📸 *Crop Image Analysis:* Send a clear photo of your plant or field. I will detect diseases, pest damage, weather stress, estimate damage severity %, and give recommended actions.
+2. 💬 *Text Question & Answer:* Type *any* farming question (e.g., _"How to control aphids?"_, _"Best fertilizer for wheat"_, _"Yellow leaves remedy"_). I answer directly by text!
+3. 📄 *Instant Reports:* Type /report to receive a structured assessment and official PDF report.
 
-📋 *Available Commands:*
-/analyze — Instructions to submit an image
-/history — View your recent crop assessments
-/report — Get the full report & PDF for your latest photo
-/help — Guide on how to get the most accurate results
+📋 *Quick Commands:*
+/analyze — Instructions to submit crop photos
+/history — View your previous field diagnoses
+/report — Download PDF report of your latest scan
+/help — Tips for best photo & question results
 
-Send me a photo now to begin! 🌱"""
+🌾 *Send me a crop photo or ask any farming question to begin!*"""
 
     await update.message.reply_text(welcome_msg, parse_mode=constants.ParseMode.MARKDOWN)
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /help command."""
-    help_msg = """📖 *AgriVision Guide & Best Practices*
+    help_msg = """📖 *AgriVision Guide & Tips*
 
-*How to take effective crop photos:*
-• ☀️ *Lighting:* Capture in good natural daylight (avoid heavy glare/shadows).
-• 🔍 *Focus:* Take a sharp close-up of the affected leaves, stems, or fruits.
-• 📐 *Context:* Include both damaged parts and healthy nearby tissue for contrast.
-• 🚫 *Avoid:* Blurry, dark, or extremely distant aerial shots.
+📸 *Taking Effective Crop Photos:*
+• ☀️ *Lighting:* Natural daylight works best (avoid harsh flash or shadows).
+• 🔍 *Focus:* Close-up of damaged leaves, stems, pods, or fruits.
+• 📐 *Contrast:* Include both damaged and healthy areas if possible.
 
-*Follow-up Questions you can ask:*
-After sending a photo, simply type your question, such as:
-• _"What is the possible problem?"_
-• _"How severe is this damage?"_
-• _"What should I inspect next in my field?"_
-• _"Will this spread to neighboring crops?"_
+💬 *Asking Questions by Text:*
+You don't need a photo to get agricultural advice! You can ask:
+• _"What causes white powder on pumpkin leaves?"_
+• _"How to manage stem borer in paddy without toxic chemicals?"_
+• _"What are the best companion plants for tomato?"_
+• _"How much water does maize need during flowering?"_
 
-*Commands:*
-/analyze — Start a new crop image analysis
+📋 *Commands:*
+/analyze — Start photo diagnosis
 /history — View your past inspection logs
-/report — Download PDF report of the last analysis
+/report — Download latest PDF assessment
 /start — Re-introduce AgriVision"""
 
     await update.message.reply_text(help_msg, parse_mode=constants.ParseMode.MARKDOWN)
@@ -109,15 +107,15 @@ After sending a photo, simply type your question, such as:
 
 async def analyze_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /analyze command."""
-    msg = """📷 *Ready for Crop Analysis!*
+    msg = """📷 *Ready for Crop Inspection!*
 
-Please tap the 📎 attachment icon and send a clear photograph of your crop or field.
+Please tap the 📎 attachment icon and send a photograph of your crop or field.
 
-AgriVision will examine:
-• Disease & fungal leaf spots
-• Pest defoliation & insect damage
-• Wild animal trampling/grazing
-• Weather, hail & flood waterlogging
+AgriVision AI examines:
+• Fungal leaf spots, rusts, blights & virus marks
+• Pest chewing, caterpillars & borer damage
+• Animal trampling & structural loss
+• Hail, flood waterlogging & heat stress
 • Estimated damage severity & affected zones"""
 
     await update.message.reply_text(msg, parse_mode=constants.ParseMode.MARKDOWN)
@@ -150,7 +148,7 @@ async def report_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not latest:
         await update.message.reply_text(
-            "⚠️ No analysis found. Please send a crop photo first!",
+            "⚠️ No crop analysis found. Please send a crop photo first!",
             parse_mode=constants.ParseMode.MARKDOWN
         )
         return
@@ -159,7 +157,10 @@ async def report_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Format text report
     text_report = report_generator.format_telegram_report(latest)
-    await update.message.reply_text(text_report, parse_mode=constants.ParseMode.MARKDOWN)
+    try:
+        await update.message.reply_text(text_report, parse_mode=constants.ParseMode.MARKDOWN)
+    except Exception:
+        await update.message.reply_text(text_report)
 
     # Generate and send PDF
     try:
@@ -185,18 +186,18 @@ async def report_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handles incoming crop images for AI vision analysis."""
+    """Handles incoming crop images for AI vision analysis with immediate feedback."""
     user = update.effective_user
     user_id = str(user.id)
     username = user.username or user.first_name or "Anonymous"
     chat_id = str(update.effective_chat.id)
 
-    # Send status
+    # Report immediately that the bot is responding
+    await update.message.reply_chat_action(constants.ChatAction.TYPING)
     status_msg = await update.message.reply_text(
-        "⏳ *Analyzing crop image with Gemini Vision...*\nPlease wait a moment.",
+        "📸 *AgriVision received your crop image!*\n⏳ *AI Vision is inspecting leaves, disease symptoms, pest damage, and severity...*",
         parse_mode=constants.ParseMode.MARKDOWN
     )
-    await update.message.reply_chat_action(constants.ChatAction.TYPING)
 
     try:
         # Download highest resolution photo
@@ -209,7 +210,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await tg_file.download_to_drive(local_filepath)
 
-        # Run Gemini Vision analysis
+        # Run AI Vision analysis
         analysis_result = ai_analyzer.analyze_crop_image(local_filepath)
 
         # Save to SQLite database
@@ -223,71 +224,90 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         analysis_result["id"] = analysis_id
 
-        # Format and send response
+        # Format report
         reply_text = report_generator.format_telegram_report(analysis_result)
-        
-        followup_hint = "\n\n💡 *Tip:* Ask any follow-up question (e.g., _\"How severe is this?\"_) or type /report for a PDF download."
-        
-        # Delete or edit loading status
+        followup_hint = "\n\n💡 *Tip:* Ask any follow-up question directly or type /report for a PDF download."
+
+        # Remove temporary status message
         try:
             await status_msg.delete()
         except Exception:
             pass
 
-        await update.message.reply_text(reply_text + followup_hint, parse_mode=constants.ParseMode.MARKDOWN)
+        # Send full assessment
+        try:
+            await update.message.reply_text(reply_text + followup_hint, parse_mode=constants.ParseMode.MARKDOWN)
+        except Exception:
+            await update.message.reply_text(reply_text + followup_hint)
 
-    except ValueError as val_err:
-        logger.error(f"Configuration or validation error: {val_err}")
-        await status_msg.edit_text(
-            f"⚠️ *Configuration Notice:*\n{str(val_err)}\n\nPlease ensure `GEMINI_API_KEY` is configured.",
-            parse_mode=constants.ParseMode.MARKDOWN
-        )
     except Exception as e:
         logger.error(f"Error analyzing photo: {e}", exc_info=True)
-        await status_msg.edit_text(
-            f"❌ *Analysis Error:*\nFailed to process image. Reason: {str(e)}\n\nPlease try sending a clearer image or try again shortly.",
-            parse_mode=constants.ParseMode.MARKDOWN
-        )
+        try:
+            await status_msg.edit_text(
+                f"❌ *Analysis Notice:*\nCould not complete image analysis: {str(e)}\n\nPlease try sending another clear close-up photograph.",
+                parse_mode=constants.ParseMode.MARKDOWN
+            )
+        except Exception:
+            await update.message.reply_text(f"Notice: Could not analyze image. {str(e)}")
 
 
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handles text follow-ups from the farmer regarding the latest crop analysis."""
+    """
+    Handles text inquiries from farmers.
+    Answers both follow-up questions for previous images AND direct general agricultural questions!
+    Reports immediate responding status so the user knows the bot is actively working.
+    """
     user = update.effective_user
     user_id = str(user.id)
     user_text = update.message.text.strip()
 
-    # Retrieve user's latest analysis context
-    latest = database.get_latest_analysis_for_user(user_id)
-
-    if not latest:
-        await update.message.reply_text(
-            "🌱 Please send a photo of your crop first, or type /help for instructions!",
-            parse_mode=constants.ParseMode.MARKDOWN
-        )
-        return
-
+    # Report immediately that the bot is responding
     await update.message.reply_chat_action(constants.ChatAction.TYPING)
-
-    # Save user message
-    database.save_chat_message(latest["id"], user_id, "user", user_text)
-
-    # Fetch recent chat context
-    chat_history = database.get_chat_history_for_analysis(latest["id"], limit=6)
-
-    # Generate answer using Gemini
-    answer = ai_analyzer.answer_follow_up(
-        analysis_context=latest,
-        user_question=user_text,
-        chat_history=chat_history
-    )
-
-    # Save assistant answer
-    database.save_chat_message(latest["id"], user_id, "assistant", answer)
-
-    await update.message.reply_text(
-        f"🌾 *AgriVision Assistant:*\n\n{answer}",
+    status_msg = await update.message.reply_text(
+        "🌾 *AgriVision is analyzing your question...*",
         parse_mode=constants.ParseMode.MARKDOWN
     )
+
+    try:
+        # Check if the user has a recent crop analysis
+        latest = database.get_latest_analysis_for_user(user_id)
+
+        if latest:
+            # Contextual follow-up grounded in the uploaded crop
+            chat_history = database.get_chat_history_for_analysis(latest["id"], limit=6)
+            answer = ai_analyzer.answer_follow_up(
+                analysis_context=latest,
+                user_question=user_text,
+                chat_history=chat_history
+            )
+            # Save conversation to database
+            database.save_chat_message(latest["id"], user_id, "user", user_text)
+            database.save_chat_message(latest["id"], user_id, "assistant", answer)
+        else:
+            # Direct general agricultural advice (no image required!)
+            chat_history = database.get_chat_history_for_user(user_id, limit=6)
+            answer = ai_analyzer.answer_general_question(
+                user_question=user_text,
+                chat_history=chat_history
+            )
+            # Save conversation to database
+            database.save_chat_message(None, user_id, "user", user_text)
+            database.save_chat_message(None, user_id, "assistant", answer)
+
+        # Update status message with response
+        formatted_reply = f"🌾 *AgriVision Assistant:*\n\n{answer}"
+        try:
+            await status_msg.edit_text(formatted_reply, parse_mode=constants.ParseMode.MARKDOWN)
+        except Exception:
+            # Fallback if markdown symbols in LLM response fail Telegram parser
+            await status_msg.edit_text(f"🌾 AgriVision Assistant:\n\n{answer}")
+
+    except Exception as e:
+        logger.error(f"Error answering text message: {e}", exc_info=True)
+        try:
+            await status_msg.edit_text(f"⚠️ Unable to answer right now: {str(e)}")
+        except Exception:
+            await update.message.reply_text(f"⚠️ Unable to answer right now: {str(e)}")
 
 
 def run_telegram_bot():
@@ -298,8 +318,9 @@ def run_telegram_bot():
         print("    Please set TELEGRAM_BOT_TOKEN in .streamlit/secrets.toml or .env")
         return
 
-    # Initialize Database
+    # Initialize Database & seed samples if empty
     database.init_db()
+    database.seed_sample_data()
 
     print("[*] Starting AgriVision Telegram Bot...")
     app = ApplicationBuilder().token(token).build()
@@ -315,7 +336,7 @@ def run_telegram_bot():
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
-    print("[+] AgriVision Telegram Bot is active and listening for messages!")
+    print("[+] AgriVision Telegram Bot is active and listening for messages (Photo & Text)!")
     app.run_polling(drop_pending_updates=True)
 
 
