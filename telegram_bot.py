@@ -35,9 +35,10 @@ logger = logging.getLogger("AgriVisionBot")
 
 
 def get_telegram_token() -> Optional[str]:
-    """Retrieves the Telegram bot token from secrets/env."""
+    """Retrieves the Telegram bot token from env or secrets.toml."""
+    load_dotenv()
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    if token and token != "your-telegram-bot-token-here":
+    if token and len(token) > 15 and not token.startswith("your-"):
         return token
 
     # Check .streamlit/secrets.toml
@@ -47,7 +48,7 @@ def get_telegram_token() -> Optional[str]:
             import toml
             secrets = toml.load(secrets_path)
             tok = secrets.get("TELEGRAM_BOT_TOKEN")
-            if tok and tok != "your-telegram-bot-token-here":
+            if tok and len(tok) > 15 and not tok.startswith("your-"):
                 return tok
         except Exception:
             pass

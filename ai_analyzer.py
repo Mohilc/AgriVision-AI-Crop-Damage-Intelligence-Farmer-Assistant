@@ -32,8 +32,9 @@ NVIDIA_BACKUP_MODEL = "moonshotai/kimi-k3"
 
 def get_nvidia_api_key() -> Optional[str]:
     """Retrieves the NVIDIA API key from env or Streamlit secrets."""
+    load_dotenv()
     key = os.environ.get("NVIDIA_API_KEY")
-    if key and key != "your-nvidia-api-key-here":
+    if key and len(key) > 20 and not key.startswith("your-"):
         return key
 
     secrets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml")
@@ -42,7 +43,7 @@ def get_nvidia_api_key() -> Optional[str]:
             import toml
             secrets = toml.load(secrets_path)
             tok = secrets.get("NVIDIA_API_KEY")
-            if tok and tok != "your-nvidia-api-key-here":
+            if tok and len(tok) > 20 and not tok.startswith("your-"):
                 return tok
         except Exception:
             pass
@@ -52,8 +53,9 @@ def get_nvidia_api_key() -> Optional[str]:
 
 def get_nvidia_backup_key() -> Optional[str]:
     """Retrieves backup NVIDIA API key."""
+    load_dotenv()
     key = os.environ.get("NVIDIA_BACKUP_API_KEY")
-    if key and key != "your-nvidia-api-key-here":
+    if key and len(key) > 20 and not key.startswith("your-"):
         return key
     secrets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml")
     if os.path.exists(secrets_path):
@@ -61,7 +63,7 @@ def get_nvidia_backup_key() -> Optional[str]:
             import toml
             secrets = toml.load(secrets_path)
             tok = secrets.get("NVIDIA_BACKUP_API_KEY")
-            if tok and tok != "your-nvidia-api-key-here":
+            if tok and len(tok) > 20 and not tok.startswith("your-"):
                 return tok
         except Exception:
             pass
@@ -70,8 +72,9 @@ def get_nvidia_backup_key() -> Optional[str]:
 
 def get_gemini_api_key() -> Optional[str]:
     """Retrieves the Gemini API key from env or Streamlit secrets."""
+    load_dotenv()
     key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-    if key and key != "your-gemini-api-key-here":
+    if key and len(key) > 20 and not key.startswith("your-"):
         return key
 
     secrets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml")
@@ -80,7 +83,7 @@ def get_gemini_api_key() -> Optional[str]:
             import toml
             secrets = toml.load(secrets_path)
             tok = secrets.get("GEMINI_API_KEY") or secrets.get("GOOGLE_API_KEY")
-            if tok and tok != "your-gemini-api-key-here":
+            if tok and len(tok) > 20 and not tok.startswith("your-"):
                 return tok
         except Exception:
             pass
