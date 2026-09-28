@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # Streamlit Web Control Center & Analytics Dashboard
+  web:
+    build: .
+    container_name: agrivision-web
+    restart: always
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    command: streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+
+  # 24/7 Farmer Assistant Telegram Bot Daemon
+  bot:
+    build: .
+    container_name: agrivision-bot
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    command: python telegram_bot.py

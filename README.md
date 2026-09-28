@@ -1,32 +1,37 @@
-# 🌱 AgriVision — AI-Based Crop Damage Detection, Quantification & Farmer Reporting System
+# 🌱 AgriVision — AI-Powered Crop Damage Detection, Quantification & Farmer Intelligence Assistant
 
-> **Practical, accessible, and farmer-centric AI technology addressing agricultural crop loss, early damage detection, and structured reporting.**
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Streamlit 1.40+](https://img.shields.io/badge/Streamlit-1.40%2B-red.svg)](https://streamlit.io/)
+[![Meta Llama 3.2 Vision](https://img.shields.io/badge/Vision%20Model-Meta%20Llama%203.2%2011B-purple.svg)](https://build.nvidia.com/meta/llama-3.2-11b-vision-instruct)
+[![NVIDIA NIM](https://img.shields.io/badge/Inference-NVIDIA%20NIM%20Catalog-green.svg)](https://integrate.api.nvidia.com)
+[![Docker Ready](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+> **Practical, accessible, and farmer-centric AI technology addressing agricultural crop loss, early damage diagnosis, environmental causation analysis, and tailored actionable reporting.**
 
 ---
 
 ## 📌 Problem Statement
 
-Farmers frequently encounter devastating crop losses from plant diseases, pest outbreaks, wild animal intrusions, extreme weather events, and flood waterlogging. 
+Farmers and agronomists frequently encounter devastating crop losses caused by **plant diseases, insect pests, wild animal intrusions, extreme weather events, and waterlogging/flooding**. 
 
-However, smallholder farmers often lack immediate access to agricultural experts to assess:
-1. What the visible damage actually is.
-2. How severe the loss is across their field.
-3. What immediate cultural or field-inspection steps should be taken.
-
-Furthermore, farmers need a simple, zero-friction interface (such as **Telegram**) to send a field photo and receive an understandable assessment report without complex software installations.
+However, smallholder farmers often face critical barriers:
+1. **Lack of Immediate Diagnostic Expertise:** Identifying whether leaf spots stem from fungal pathogens, bacterial blights, nutrient stress, or pest activity requires specialized knowledge that is unavailable during early outbreak windows.
+2. **Missing Causation & Remedies:** Knowing a crop has damage is insufficient—farmers need to know **what environmental conditions triggered it** (e.g., prolonged leaf wetness, high humidity, improper irrigation) and **practical, safe organic & cultural remedies** to halt the spread without hazardous chemicals.
+3. **High Technology Friction:** Farmers cannot navigate complex software dashboards or install heavy apps. They need a zero-friction channel—such as **Telegram**—to simply snap a picture, receive an immediate screening, and ask follow-up questions in natural language.
 
 ---
 
 ## 🌾 The 8 Core Agricultural Challenges Addressed
 
-1. **Crop Disease Damage Detection:** Identifies fungal leaf spots, blights, rusts, and viral chlorosis.
-2. **Pest-Related Damage Detection:** Identifies chewing holes, defoliation, leaf-miner trails, and insect presence.
-3. **Wild Animal Intrusion Assessment:** Recognizes physical trampling, stem snapping, and crop grazing.
-4. **Weather Damage Assessment:** Identifies hail tears, frost scorch, wind lodging, and heat stress.
-5. **Flood & Waterlogging Assessment:** Flags submersion symptoms, root asphyxiation chlorosis, and silt accumulation.
-6. **Damage Severity & Percentage Estimation:** Provides cautious, visual percentage ranges (e.g., *20–30%*) without false scientific certainty.
-7. **Localized Damage Zone Identification:** Highlights specific image sectors (e.g., *lower-left canopy*, *stem base*).
-8. **Farmer-Friendly Structured Reporting:** Generates clean Telegram summaries and downloadable **PDF Assessment Reports**.
+1. **Crop Disease Damage Detection:** Identifies fungal leaf spots, anthracnose, blights, rusts, mildews, and viral chlorosis.
+2. **Pest Damage Detection:** Identifies leaf-chewing, defoliation, stem-borer entry holes, leaf-miner trails, and insect presence.
+3. **Wild Animal Intrusion Assessment:** Recognizes physical trampling, canopy crushing, stem snapping, and crop grazing.
+4. **Extreme Weather Damage Assessment:** Identifies hail shredding, frost scorching, wind lodging, and heat stress.
+5. **Flood & Waterlogging Assessment:** Flags submergence damage, silt deposition, and root-asphyxiation chlorosis.
+6. **Damage Severity & Percentage Estimation:** Computes conservative, visual damage ranges (e.g., *20–30%*, *40–50%*) avoiding false scientific precision.
+7. **Localized Damage Zone Identification:** Detects affected canopy zones (e.g., *central canopy*, *lower foliage*, *stem base*).
+8. **Farmer-Friendly Structured Reporting:** Generates instant Telegram assessments and downloadable, printable **Official PDF Reports**.
 
 ---
 
@@ -39,8 +44,8 @@ Furthermore, farmers need a simple, zero-friction interface (such as **Telegram*
                                                  │ 📸 Sends Crop Photo / Follow-up Qs
                                                  ▼
 ┌─────────────────────────────┐   ┌─────────────────────────────┐
-│ Streamlit Web Dashboard     │   │ telegram_bot.py             │
-│ (Desktop / Evaluator Bench) │   │ (Async Telegram Bot Engine) │
+│ Streamlit Web Control Center│   │ telegram_bot.py             │
+│ (Evaluator / Admin Desktop) │   │ (Async Telegram Bot Engine) │
 └──────────────┬──────────────┘   └──────────────┬──────────────┘
                │                                 │
                └────────────────┬────────────────┘
@@ -48,10 +53,13 @@ Furthermore, farmers need a simple, zero-friction interface (such as **Telegram*
                                 ▼
                   ┌───────────────────────────┐
                   │ ai_analyzer.py            │
-                  │ (NVIDIA Nemotron Vision / │
-                  │  Google Gemini Fallback)  │
+                  │ Multi-Engine AI Pipeline: │
+                  │ 1. Meta Llama 3.2 Vision  │
+                  │ 2. NVIDIA Nemotron-3      │
+                  │ 3. Moonshot AI Kimi-k3    │
+                  │ 4. Google Gemini Fallback │
                   └─────────────┬─────────────┘
-                                │ Structured JSON Assessment
+                                │ Structured JSON / Markdown Diagnostic
                                 ▼
          ┌──────────────────────┴──────────────────────┐
          ▼                                             ▼
@@ -63,104 +71,340 @@ Furthermore, farmers need a simple, zero-friction interface (such as **Telegram*
 
 ---
 
-## 🛠️ Technology Stack
+## 🌟 Key Features & Innovations
 
-- **Primary AI Reasoning Engine:** NVIDIA Nemotron-3 Nano Omni Reasoning Vision (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning`)
-- **Secondary AI Engines:** Moonshot AI (`moonshotai/kimi-k3`) & Google Gemini (`gemini-3.5-flash-lite`)
-- **Messaging Interface:** Python Telegram Bot API (`python-telegram-bot` async)
-- **Web Control Center:** Streamlit 1.64+ with 1-Click Demos & Live Agronomist Text Chat
-- **Database:** SQLite with thread-safe queries & automatic demo data seeding
-- **Image Processing:** Pillow (PIL)
-- **Reporting Engine:** ReportLab PDF Builder
+### 1. Multi-Engine Multimodal Vision Cascade
+- **Primary Vision Engine:** [`meta/llama-3.2-11b-vision-instruct`](https://build.nvidia.com/meta/llama-3.2-11b-vision-instruct) hosted on NVIDIA NIM API (`https://integrate.api.nvidia.com/v1/chat/completions`) delivers ultra-fast (~6–8s), highly accurate plant pathology identification.
+- **Secondary Reasoning Engines:** NVIDIA Nemotron-3 Nano Omni Reasoning (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning`) and Moonshot AI Kimi (`moonshotai/kimi-k3`).
+- **High-Availability Fallback:** Google Gemini (`gemini-3.5-flash-lite` / `gemini-3.8-flash`) ensures 100% uptime if NVIDIA rate limits or network issues occur.
+
+### 2. Environmental Conditions & Practical Remedies Pipeline
+Every analysis reports:
+- **🌧️ Conditions Favoring Damage:** Details the environmental drivers (e.g., *Relative humidity >80%, extended leaf wetness, warm temperatures 20°C–28°C, stagnant air circulation, overhead watering*).
+- **🛠️ Solutions & Practical Remedies:** Outlines immediate cultural sanitation, pruning guidelines, biological treatments (e.g., *Neem oil spray 0.5%, Trichoderma, Bacillus subtilis*), and aeration practices.
+
+### 3. Interactive Unknown Crop Clarification Workflow
+When an uploaded photograph has an obscured angle or unidentifiable crop:
+1. The bot automatically prompts the farmer:
+   > ❓ **Crop Unidentified:** AI detected visible symptoms, but the crop name could not be confirmed with certainty.  
+   > 👉 **Please reply with your crop name** (e.g., *Rose, Tomato, Cotton, Wheat, Rice, Chilli*).
+2. When the user replies with their crop name (e.g. *"Rose"* or *"My crop is Tomato"*), the bot recognizes the name, updates the database, and immediately outputs the exact **damage conditions and tailored remedies** for that specific plant.
+
+### 4. Text Agronomy Q&A (No Photo Required)
+Farmers can type **any farming question directly** (e.g., *"How to control aphids without chemicals?"*, *"Best fertilizer schedule for paddy"*). The bot answers conversationally in plain language.
+
+### 5. Automated Official PDF Reports
+Type `/report` in Telegram or click **Download PDF** on the Streamlit dashboard to generate an official printable ReportLab PDF assessment report with severity badges, diagnostic tables, and farmer action checklists.
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Directory Structure
 
 ```
 agrivision/
-│
-├── app.py                      # Streamlit admin & evaluator control center
-├── telegram_bot.py             # Telegram Bot engine (Photo Vision & Text Q&A)
-├── ai_analyzer.py              # NVIDIA Nemotron & Gemini multimodal analyzer
-├── prompts.py                  # Structured prompts, system instructions & JSON schema
-├── database.py                 # SQLite CRUD, schema migration, and analytics queries
-├── report_generator.py         # Formats farmer-friendly Telegram reports & PDF exports
+├── app.py                      # Streamlit Admin & Evaluator Control Center
+├── telegram_bot.py             # 24/7 Telegram Bot Daemon (Photo & Text Q&A)
+├── ai_analyzer.py              # Multi-engine vision & agronomy reasoning engine
+├── prompts.py                  # Structured prompts, system instructions & JSON schemas
+├── database.py                 # SQLite persistence layer with schema migrations
+├── report_generator.py         # Telegram message formatter & ReportLab PDF generator
 ├── requirements.txt            # Python dependencies
-├── README.md                   # Full documentation & setup guide
-├── .gitignore                  # Git ignore file (keeps .env & secrets.toml safe)
+├── Dockerfile                  # Container definition for cloud deployment
+├── docker-compose.yml          # Multi-container orchestration (Web + Bot)
+├── README.md                   # Full documentation & deployment guide
+├── .gitignore                  # Git ignore rules (protects .env and secrets)
 │
 ├── .streamlit/
-│   ├── config.toml             # Streamlit visual theme styling
-│   └── secrets.toml.example    # Configuration template for API keys
+│   ├── config.toml             # Custom green AgriTech visual theme
+│   ├── secrets.toml.example    # Secrets template for cloud and local deployment
+│   └── secrets.toml            # (Local only - git ignored)
 │
-└── data/
-    ├── agrivision.db           # SQLite database (created automatically)
-    └── uploads/                # Cached crop photos & generated PDFs
+├── data/
+│   ├── agrivision.db           # SQLite database (auto-created on first run)
+│   └── uploads/                # Cached crop photos & generated PDF reports
+│
+└── tests/
+    └── test_end_to_end.py      # Automated vision & diagnostic pipeline test
 ```
 
 ---
 
-## 🔑 Setup & Installation
+## 🔑 Secrets & Configuration Matrix
 
-### 1. Clone & Activate Virtual Environment
-
-```bash
-cd agrivision
-python -m venv venv
-
-# Windows:
-venv\Scripts\activate
-
-# Linux/macOS:
-source venv/bin/activate
-```
-
-### 2. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Configure API Secrets
-
-Copy `.streamlit/secrets.toml.example` to `.streamlit/secrets.toml` or create `.env`:
-
-```bash
-cp .streamlit/secrets.toml.example .streamlit/secrets.toml
-```
-
-Add your credentials to `.streamlit/secrets.toml` or `.env`:
+AgriVision supports credentials via **`.env`** or **`.streamlit/secrets.toml`**. Copy `.streamlit/secrets.toml.example` to `.streamlit/secrets.toml` or create `.env`:
 
 ```toml
+# Meta Llama 3.2 11B Vision Key (Primary Vision & Diagnostic Engine)
+META_LLAMA_API_KEY = "nvapi-..."
+
+# Moonshot AI Kimi Key (Secondary / Agronomy Q&A Engine)
+KIMI_API_KEY = "nvapi-..."
+
+# NVIDIA Nemotron Key (Reasoning Engine)
+NEMOTRON_API_KEY = "nvapi-..."
+
+# General NVIDIA Key (Default Fallback for NVIDIA NIM API)
 NVIDIA_API_KEY = "nvapi-..."
-GEMINI_API_KEY = "AIzaSy..."
+NVIDIA_BACKUP_API_KEY = "nvapi-..."
+
+# Google Gemini Fallback Key
+GEMINI_API_KEY = "AQ...."
+
+# Telegram Bot Token (from Telegram @BotFather)
 TELEGRAM_BOT_TOKEN = "123456789:ABCdef..."
 ```
 
-> **API Key Safety:**
-> `.env` and `.streamlit/secrets.toml` are strictly excluded from git tracking via `.gitignore`. Your keys never get committed or pushed to GitHub.
+### Where to Obtain Keys:
+| Key | Provider | Where to Get |
+|---|---|---|
+| `META_LLAMA_API_KEY` | NVIDIA NIM | [build.nvidia.com/meta/llama-3.2-11b-vision-instruct](https://build.nvidia.com/meta/llama-3.2-11b-vision-instruct) |
+| `KIMI_API_KEY` | NVIDIA NIM | [build.nvidia.com/moonshotai/kimi-k3](https://build.nvidia.com/moonshotai/kimi-k3) |
+| `NEMOTRON_API_KEY` | NVIDIA NIM | [build.nvidia.com/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning](https://build.nvidia.com/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning) |
+| `GEMINI_API_KEY` | Google AI Studio | [aistudio.google.com](https://aistudio.google.com/) |
+| `TELEGRAM_BOT_TOKEN` | Telegram | Search for **`@BotFather`** in Telegram, send `/newbot` |
 
+> 🔒 **Security Note:** `.env` and `.streamlit/secrets.toml` are excluded in `.gitignore`. They are never committed or pushed to GitHub.
 
 ---
 
-## 🚀 Running AgriVision
+## 🌐 Full Hosting & Deployment Guide
 
-### 1. Run the Telegram Bot (For Farmers)
+Choose the deployment method that fits your infrastructure:
 
+### Option 1: Streamlit Community Cloud (Free & Fastest Web Hosting)
+Ideal for hosting the **Web Control Center & Analytics Dashboard**:
+
+1. **Push your code to GitHub** (Ensure repo is public or accessible by Streamlit Cloud).
+2. Go to **[share.streamlit.io](https://share.streamlit.io/)** and log in with GitHub.
+3. Click **"New App"**:
+   - **Repository:** `YourUsername/AgriVision-AI-Crop-Damage-Intelligence-Farmer-Assistant`
+   - **Branch:** `main`
+   - **Main file path:** `app.py`
+4. Click **"Advanced settings..."** ➔ **Secrets**:
+   Paste the contents of your `secrets.toml`:
+   ```toml
+   META_LLAMA_API_KEY = "nvapi-..."
+   KIMI_API_KEY = "nvapi-..."
+   NVIDIA_API_KEY = "nvapi-..."
+   GEMINI_API_KEY = "AQ...."
+   TELEGRAM_BOT_TOKEN = "123456789:ABCdef..."
+   ```
+5. Click **"Deploy"**. Your web dashboard is live on the internet with a public URL!
+
+---
+
+### Option 2: Docker & Docker Compose (Any VPS / Server in 1 Command)
+Run both the **Streamlit Web Dashboard** and the **24/7 Telegram Bot** in isolated containers:
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/YourUsername/AgriVision-AI-Crop-Damage-Intelligence-Farmer-Assistant.git
+   cd AgriVision-AI-Crop-Damage-Intelligence-Farmer-Assistant
+   ```
+
+2. **Create your `.env` file:**
+   ```bash
+   cp .streamlit/secrets.toml.example .env
+   # Edit .env and enter your valid API keys
+   nano .env
+   ```
+
+3. **Build and launch with Docker Compose:**
+   ```bash
+   docker compose up -d --build
+   ```
+
+4. **Verify container status:**
+   ```bash
+   docker compose ps
+   # View live logs:
+   docker compose logs -f
+   ```
+
+The Streamlit dashboard is available at `http://your-server-ip:8501`, and the Telegram bot will poll and respond 24/7!
+
+---
+
+### Option 3: Linux Cloud VPS (AWS EC2 / DigitalOcean / Linode / Ubuntu 22.04 / 24.04)
+Run both services as robust background `systemd` daemons that auto-restart on crashes or system reboot:
+
+#### 1. System Setup
 ```bash
-python telegram_bot.py
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3-pip python3-venv git curl libjpeg-dev zlib1g-dev nginx
 ```
 
-Open Telegram, search for your bot, and send `/start` or upload any crop photo.
-
-### 2. Run the Streamlit Dashboard (For Evaluators & Field Admins)
-
+#### 2. Clone & Setup Virtual Environment
 ```bash
-streamlit run app.py
+cd /var/www
+sudo git clone https://github.com/YourUsername/AgriVision-AI-Crop-Damage-Intelligence-Farmer-Assistant.git agrivision
+sudo chown -R $USER:$USER /var/www/agrivision
+cd agrivision
+
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
-The web dashboard opens at `http://localhost:8501`.
+#### 3. Setup Secrets
+```bash
+cp .streamlit/secrets.toml.example .streamlit/secrets.toml
+nano .streamlit/secrets.toml
+# Also copy to .env:
+cp .streamlit/secrets.toml .env
+```
+
+#### 4. Configure `systemd` for Streamlit Dashboard (`agrivision-web.service`)
+```bash
+sudo nano /etc/systemd/system/agrivision-web.service
+```
+Paste:
+```ini
+[Unit]
+Description=AgriVision Streamlit Web Dashboard
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/var/www/agrivision
+ExecStart=/var/www/agrivision/venv/bin/streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
+Restart=always
+RestartSec=5
+EnvironmentFile=/var/www/agrivision/.env
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### 5. Configure `systemd` for Telegram Bot (`agrivision-bot.service`)
+```bash
+sudo nano /etc/systemd/system/agrivision-bot.service
+```
+Paste:
+```ini
+[Unit]
+Description=AgriVision Telegram Bot Daemon
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/var/www/agrivision
+ExecStart=/var/www/agrivision/venv/bin/python telegram_bot.py
+Restart=always
+RestartSec=5
+EnvironmentFile=/var/www/agrivision/.env
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### 6. Enable and Start Both Services
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now agrivision-web
+sudo systemctl enable --now agrivision-bot
+
+# Check status:
+sudo systemctl status agrivision-web
+sudo systemctl status agrivision-bot
+```
+
+#### 7. (Optional) Configure Nginx Reverse Proxy & Free SSL
+Point your domain (e.g., `agrivision.example.com`) to port `8501`:
+```bash
+sudo nano /etc/nginx/sites-available/agrivision
+```
+Paste:
+```nginx
+server {
+    server_name agrivision.example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8501;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 86400;
+    }
+}
+```
+Enable and get SSL via Let's Encrypt:
+```bash
+sudo ln -s /etc/nginx/sites-available/agrivision /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d agrivision.example.com
+```
+
+---
+
+### Option 4: Render / Railway (Free PaaS Deployment)
+
+#### Deploying Telegram Bot on Render (Background Worker):
+1. Create a **New Background Worker** on [render.com](https://render.com).
+2. Connect your GitHub repository.
+3. Set:
+   - **Environment:** `Python 3`
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `python telegram_bot.py`
+4. Add Environment Variables under **Settings ➔ Environment Variables**:
+   - `META_LLAMA_API_KEY`, `KIMI_API_KEY`, `NVIDIA_API_KEY`, `GEMINI_API_KEY`, `TELEGRAM_BOT_TOKEN`.
+5. Deploy. The bot runs continuously in the cloud.
+
+#### Deploying Streamlit on Render (Web Service):
+1. Create a **New Web Service**.
+2. Connect repository.
+3. Set:
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `streamlit run app.py --server.port $PORT --server.address 0.0.0.0`
+4. Add the same Environment Variables.
+5. Deploy.
+
+---
+
+### Option 5: Local Development (Windows / macOS / Linux)
+
+#### 1. Setup Environment
+```bash
+git clone https://github.com/YourUsername/AgriVision-AI-Crop-Damage-Intelligence-Farmer-Assistant.git
+cd AgriVision-AI-Crop-Damage-Intelligence-Farmer-Assistant
+
+# Create virtual environment:
+python -m venv venv
+
+# Windows activate:
+venv\Scripts\activate
+
+# Linux / macOS activate:
+source venv/bin/activate
+
+# Install requirements:
+pip install -r requirements.txt
+```
+
+#### 2. Configure Credentials
+```bash
+cp .streamlit/secrets.toml.example .streamlit/secrets.toml
+# Edit .streamlit/secrets.toml with your keys
+```
+
+#### 3. Run Services
+- **Run Telegram Bot:**
+  ```bash
+  python telegram_bot.py
+  ```
+- **Run Streamlit Dashboard (in another terminal):**
+  ```bash
+  streamlit run app.py
+  ```
+- **Run Automated Verification Test:**
+  ```bash
+  python tests/test_end_to_end.py
+  ```
 
 ---
 
@@ -168,40 +412,72 @@ The web dashboard opens at `http://localhost:8501`.
 
 | Command | Action |
 |---|---|
-| `/start` | Introduces AgriVision and its visual screening capabilities |
-| `/help` | Photography best practices and guide on follow-up questions |
-| `/analyze` | Prompts user to upload a crop photograph |
-| `/history` | Displays recent inspection records |
-| `/report` | Delivers the detailed assessment and official PDF report |
-| `[Photo Upload]` | Automatically runs vision analysis and returns structured damage screening |
-| `[Text Message]` | Follow-up conversational reasoning (e.g. *"What is the possible problem?"*, *"Will this spread?"*) |
+| `/start` | Introduces AgriVision and its agricultural screening features |
+| `/help` | Photography tips (lighting, close-up) and guide on follow-up questions |
+| `/analyze` | Instructions on how to send plant photos for evaluation |
+| `/history` | Displays your recent crop inspection history with dates & damage % |
+| `/report` | Delivers the latest structured report and **downloads the official PDF** |
+| `[Photo Upload]` | AI vision identifies crop, damage status, causes, conditions, and remedies |
+| `[Text Message]` | Clarifies crop names OR answers direct agronomy questions (fertilizer, pests, soil) |
 
 ---
 
 ## 📊 Database Schema (SQLite)
 
-- **`analyses`**: Stores `id`, `telegram_user_id`, `crop_identified`, `damage_detected`, `possible_damage_types`, `possible_cause`, `severity`, `estimated_visible_damage_percentage`, `affected_regions`, `visible_symptoms`, `confidence`, `recommended_next_steps`, `limitations`, `image_path`, `timestamp`, `source`.
-- **`chat_messages`**: Stores multi-turn conversational follow-up memory linked to each analysis.
+The database file `data/agrivision.db` is initialized automatically on first run:
+
+- **`analyses` table:**
+  - `id`: Unique record ID
+  - `telegram_user_id`, `telegram_chat_id`, `username`: User identity
+  - `timestamp`: Analysis creation time
+  - `image_path`: Stored photo location in `data/uploads/`
+  - `crop_identified`: Crop name (e.g. *Rose*, *Tomato*, *Wheat*)
+  - `damage_detected`: Boolean flag (True/False)
+  - `possible_damage_types`: JSON array of observed damage categories
+  - `possible_cause`: Diagnostic cause (e.g. *Black Spot fungal infection*)
+  - `severity`: Classification (*None*, *Low*, *Moderate*, *High*, *Severe*)
+  - `estimated_visible_damage_percentage`: Percentage range (e.g. *20–30%*)
+  - `affected_regions`: Image zones where damage is concentrated
+  - `visible_symptoms`: Observed diagnostic markers
+  - `confidence`: Visual assessment confidence (*Low*, *Medium*, *High*)
+  - `recommended_next_steps`: Numbered actionable next steps
+  - `limitations`: 2D image screening disclaimers
+  - `raw_json_response`: Full structured response payload
+  - `source`: Platform origin (`telegram` or `web_dashboard`)
+
+- **`chat_messages` table:**
+  - `id`: Message ID
+  - `analysis_id`: Linked analysis record
+  - `telegram_user_id`: Telegram user ID
+  - `role`: Message author (`user` or `assistant`)
+  - `message_text`: Content of inquiry or response
+  - `timestamp`: Chat timestamp
 
 ---
 
 ## ⚠️ Limitations & Responsible AI Guidelines
 
-1. **Initial Screening Tool:** AgriVision is designed as an accessible screening tool, not a replacement for an agronomist.
-2. **Visual Estimates Only:** Percentages are visual approximations (e.g. 20–30%) from 2D photos, not calibrated sensor measurements.
-3. **No Unsafe Prescriptions:** The system strictly advises safe cultural inspections and official extension officer consultations rather than unverified chemical mixes.
+1. **Initial Screening Tool:** AgriVision is an artificial intelligence decision-support tool. It is designed for early warning, triage, and educational assistance. It is **not a replacement for certified on-site agronomists**.
+2. **2D Photographic Limits:** Visual screening cannot evaluate sub-surface root nematodes, soil pH imbalances, or microscopic viral strains.
+3. **Safe Interventions:** The platform strictly prioritizes physical hygiene, cultural practices, and biological controls (e.g., neem oil, sanitation) over dangerous chemical cocktails. Always consult local extension offices (e.g., Krishi Vigyan Kendra / Krishi Bhavan) before applying restricted chemicals.
 
 ---
 
 ## 🔮 Future Roadmap
 
-- 🚁 **Drone-Based Aerial Surveys:** Ingesting stitched orthomosaic farm field maps.
-- 📍 **GPS Geo-tagging & Heatmaps:** Mapping cluster outbreaks across panchayats.
-- 🔬 **Edge Vision (YOLO/TFLite):** Offline on-device pest localization for remote rural zones.
-- 🗣️ **Regional Language Support:** Native Malayalam and regional language voice interactions.
-- 📡 **IoT Soil Sensor Fusion:** Correlating visual leaf stress with live soil NPK and moisture telemetry.
+- 🚁 **Drone-Based Aerial Surveys:** Ingesting stitched orthomosaic farm field maps for field-scale damage quantification.
+- 📍 **GPS Geo-tagging & Outbreak Heatmaps:** Mapping cluster outbreaks across districts and panchayats.
+- 🔬 **Edge Vision (YOLO/TFLite):** Offline on-device pest localization for remote rural zones without connectivity.
+- 🗣️ **Multilingual Voice Support:** Native voice notes in regional Indian and global languages.
+- 📡 **IoT Soil Sensor Fusion:** Correlating visual foliar stress with live soil NPK, moisture, and temperature telemetry.
 
 ---
 
-## 📜 License
-Developed for open agritech innovation, agricultural education, and research.
+## 📜 License & Acknowledgments
+
+This project is licensed under the **MIT License** — free for academic, non-commercial, and open-source agricultural development.
+
+Special thanks to:
+- **Meta AI** for the Llama 3.2 Vision architecture.
+- **NVIDIA Developer Program** for the NVIDIA NIM Inference API catalog.
+- **Google DeepMind** for the Gemini multimodal API.
