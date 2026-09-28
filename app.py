@@ -6,6 +6,7 @@ Interactive agritech control center for crop damage detection, AI analytics, met
 import os
 import io
 import time
+import threading
 from datetime import datetime
 from PIL import Image
 import pandas as pd
@@ -14,6 +15,28 @@ import streamlit as st
 import database
 import ai_analyzer
 import report_generator
+import telegram_bot
+
+
+@st.cache_resource
+def start_cloud_telegram_bot_daemon():
+    """Starts the Telegram bot polling in a background daemon thread on Streamlit Cloud."""
+    token = telegram_bot.get_telegram_token()
+    if not token or token == "your-telegram-bot-token-here":
+        return {"status": "no_token", "message": "TELEGRAM_BOT_TOKEN not configured"}
+
+    try:
+        bot_thread = threading.Thread(
+            target=telegram_bot.run_telegram_bot,
+            kwargs={"in_background": True},
+            name="AgriVisionTelegramBotDaemon",
+            daemon=True
+        )
+        bot_thread.start()
+        return {"status": "running", "thread": bot_thread}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 
 # Page Configuration
 st.set_page_config(
@@ -146,11 +169,23 @@ with st.sidebar:
     if gem_key:
         st.info("✅ Gemini Fallback: Ready")
 
-    tg_token = database.os.environ.get("TELEGRAM_BOT_TOKEN")
-    if tg_token and tg_token != "your-telegram-bot-token-here":
-        st.success("🤖 Telegram Bot Service: Active")
+    bot_info = start_cloud_telegram_bot_daemon()
+    if bot_info.get("status") == "running":
+        st.success("🤖 Telegram Bot: 🟢 Active (Cloud Daemon)")
+    elif bot_info.get("status") == "no_token":
+        st.warning("🤖 Telegram Bot: ⚠️ Token Missing in Secrets")
     else:
-        st.info("ℹ️ Telegram Bot in Standby")
+        st.info("🤖 Telegram Bot: Standby")
+
+    with st.expander("ℹ️ 24/7 Cloud Bot Guide", expanded=False):
+        st.markdown(
+            """
+            **Running 24/7 (Even when laptop is closed):**
+            - **In Streamlit Cloud:** The bot daemon runs automatically in the background of this cloud instance! Make sure `TELEGRAM_BOT_TOKEN` is set in Streamlit Cloud Settings ➔ Secrets.
+            - **Dedicated Worker:** For a dedicated worker that never sleeps (independent of web traffic), deploy `telegram_bot.py` on Render or Railway.
+            """
+        )
+
 
     st.divider()
     st.markdown("### 💡 Quick Actions")

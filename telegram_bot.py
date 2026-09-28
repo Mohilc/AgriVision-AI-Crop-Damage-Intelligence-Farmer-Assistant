@@ -34,12 +34,54 @@ logging.basicConfig(
 logger = logging.getLogger("AgriVisionBot")
 
 
+def start_health_server():
+    """Starts a minimal HTTP server if PORT env is set (for Render / Railway / Koyeb cloud hosting)."""
+    port_str = os.environ.get("PORT")
+    if not port_str:
+        return
+    try:
+        import http.server
+        import socketserver
+        import threading
+
+        port = int(port_str)
+
+        class HealthCheckHandler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                self.send_response(200)
+                self.send_header("Content-Type", "text/plain")
+                self.end_headers()
+                self.wfile.write(b"AgriVision Telegram Bot is running 24/7.")
+
+            def log_message(self, format, *args):
+                pass  # Suppress routine log output
+
+        # Allow immediate socket reuse
+        socketserver.TCPServer.allow_reuse_address = True
+        server = socketserver.TCPServer(("0.0.0.0", port), HealthCheckHandler)
+        server_thread = threading.Thread(target=server.serve_forever, daemon=True)
+        server_thread.start()
+        logger.info(f"Cloud healthcheck HTTP server running on port {port}")
+    except Exception as e:
+        logger.warning(f"Could not start health check HTTP server on PORT {port_str}: {e}")
+
+
 def get_telegram_token() -> Optional[str]:
-    """Retrieves the Telegram bot token from env or secrets.toml."""
+    """Retrieves the Telegram bot token from env, st.secrets, or secrets.toml."""
     load_dotenv()
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     if token and len(token) > 15 and not token.startswith("your-"):
         return token
+
+    # Check Streamlit runtime secrets
+    try:
+        import streamlit as st
+        if hasattr(st, "secrets") and "TELEGRAM_BOT_TOKEN" in st.secrets:
+            tok = str(st.secrets["TELEGRAM_BOT_TOKEN"])
+            if tok and len(tok) > 15 and not tok.startswith("your-"):
+                return tok
+    except Exception:
+        pass
 
     # Check .streamlit/secrets.toml
     secrets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml")
@@ -48,12 +90,13 @@ def get_telegram_token() -> Optional[str]:
             import toml
             secrets = toml.load(secrets_path)
             tok = secrets.get("TELEGRAM_BOT_TOKEN")
-            if tok and len(tok) > 15 and not tok.startswith("your-"):
-                return tok
+            if tok and len(str(tok)) > 15 and not str(tok).startswith("your-"):
+                return str(tok)
         except Exception:
             pass
 
     return None
+
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -356,35 +399,48 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
             await update.message.reply_text(f"⚠️ Unable to answer right now: {str(e)}")
 
 
-def run_telegram_bot():
+def run_telegram_bot(in_background: bool = False):
     """Initializes and runs the Telegram Bot polling loop."""
+    if not in_background:
+        start_health_server()
+
     token = get_telegram_token()
     if not token or token == "your-telegram-bot-token-here":
-        print("[!] Error: TELEGRAM_BOT_TOKEN is not set.")
-        print("    Please set TELEGRAM_BOT_TOKEN in .streamlit/secrets.toml or .env")
+        logger.warning("[!] TELEGRAM_BOT_TOKEN is not configured. Telegram bot service standing by.")
         return
 
     # Initialize Database & seed samples if empty
     database.init_db()
     database.seed_sample_data()
 
-    print("[*] Starting AgriVision Telegram Bot...")
-    app = ApplicationBuilder().token(token).build()
+    logger.info("[*] Starting AgriVision Telegram Bot...")
+    try:
+        app = ApplicationBuilder().token(token).build()
 
-    # Register Command Handlers
-    app.add_handler(CommandHandler("start", start_command))
-    app.add_handler(CommandHandler("help", help_command))
-    app.add_handler(CommandHandler("analyze", analyze_command))
-    app.add_handler(CommandHandler("history", history_command))
-    app.add_handler(CommandHandler("report", report_command))
+        # Register Command Handlers
+        app.add_handler(CommandHandler("start", start_command))
+        app.add_handler(CommandHandler("help", help_command))
+        app.add_handler(CommandHandler("analyze", analyze_command))
+        app.add_handler(CommandHandler("history", history_command))
+        app.add_handler(CommandHandler("report", report_command))
 
-    # Register Media & Message Handlers
-    app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
+        # Register Media & Message Handlers
+        app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
+        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
-    print("[+] AgriVision Telegram Bot is active and listening for messages (Photo & Text)!")
-    app.run_polling(drop_pending_updates=True)
+        logger.info("[+] AgriVision Telegram Bot is active and listening for messages (Photo & Text)!")
+        if in_background:
+            app.run_polling(drop_pending_updates=True, stop_signals=None)
+        else:
+            app.run_polling(drop_pending_updates=True)
+    except Exception as e:
+        err_msg = str(e).lower()
+        if "conflict" in err_msg or "terminated by other getupdates" in err_msg:
+            logger.warning("Another instance of AgriVision Telegram Bot is already active and polling. Bot in standby.")
+        else:
+            logger.error(f"Telegram Bot encountered an error: {e}", exc_info=True)
 
 
 if __name__ == "__main__":
     run_telegram_bot()
+

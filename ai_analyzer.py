@@ -32,101 +32,61 @@ NVIDIA_SECONDARY_MODEL = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
 NVIDIA_BACKUP_MODEL = "moonshotai/kimi-k3"
 
 
-def get_nvidia_api_key() -> Optional[str]:
-    """Retrieves the NVIDIA API key from env or Streamlit secrets."""
+def _get_secret_value(key_name: str) -> Optional[str]:
+    """Retrieves secret value from os.environ, st.secrets, or local secrets.toml."""
     load_dotenv()
-    key = os.environ.get("NVIDIA_API_KEY")
-    if key and len(key) > 20 and not key.startswith("your-"):
-        return key
+    val = os.environ.get(key_name)
+    if val and len(val) > 15 and not val.startswith("your-"):
+        return val
 
+    # Try Streamlit runtime secrets if available in memory
+    try:
+        import streamlit as st
+        if hasattr(st, "secrets") and key_name in st.secrets:
+            s_val = str(st.secrets[key_name])
+            if s_val and len(s_val) > 15 and not s_val.startswith("your-"):
+                return s_val
+    except Exception:
+        pass
+
+    # Try .streamlit/secrets.toml
     secrets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml")
     if os.path.exists(secrets_path):
         try:
             import toml
             secrets = toml.load(secrets_path)
-            tok = secrets.get("NVIDIA_API_KEY")
-            if tok and len(tok) > 20 and not tok.startswith("your-"):
-                return tok
+            tok = secrets.get(key_name)
+            if tok and len(str(tok)) > 15 and not str(tok).startswith("your-"):
+                return str(tok)
         except Exception:
             pass
 
     return None
+
+
+def get_nvidia_api_key() -> Optional[str]:
+    """Retrieves the NVIDIA API key from env, Streamlit secrets, or secrets.toml."""
+    return _get_secret_value("NVIDIA_API_KEY")
 
 
 def get_nvidia_backup_key() -> Optional[str]:
     """Retrieves backup NVIDIA API key."""
-    load_dotenv()
-    key = os.environ.get("NVIDIA_BACKUP_API_KEY")
-    if key and len(key) > 20 and not key.startswith("your-"):
-        return key
-    secrets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml")
-    if os.path.exists(secrets_path):
-        try:
-            import toml
-            secrets = toml.load(secrets_path)
-            tok = secrets.get("NVIDIA_BACKUP_API_KEY")
-            if tok and len(tok) > 20 and not tok.startswith("your-"):
-                return tok
-        except Exception:
-            pass
-    return None
+    return _get_secret_value("NVIDIA_BACKUP_API_KEY")
 
 
 def get_meta_llama_api_key() -> Optional[str]:
     """Retrieves dedicated Meta Llama API key, falling back to NVIDIA_API_KEY."""
-    load_dotenv()
-    key = os.environ.get("META_LLAMA_API_KEY")
-    if key and len(key) > 20 and not key.startswith("your-"):
-        return key
-    secrets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml")
-    if os.path.exists(secrets_path):
-        try:
-            import toml
-            secrets = toml.load(secrets_path)
-            tok = secrets.get("META_LLAMA_API_KEY")
-            if tok and len(tok) > 20 and not tok.startswith("your-"):
-                return tok
-        except Exception:
-            pass
-    return get_nvidia_api_key()
+    return _get_secret_value("META_LLAMA_API_KEY") or get_nvidia_api_key()
 
 
 def get_kimi_api_key() -> Optional[str]:
     """Retrieves dedicated Kimi (Moonshot AI) API key, falling back to backup or primary key."""
-    load_dotenv()
-    key = os.environ.get("KIMI_API_KEY")
-    if key and len(key) > 20 and not key.startswith("your-"):
-        return key
-    secrets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml")
-    if os.path.exists(secrets_path):
-        try:
-            import toml
-            secrets = toml.load(secrets_path)
-            tok = secrets.get("KIMI_API_KEY")
-            if tok and len(tok) > 20 and not tok.startswith("your-"):
-                return tok
-        except Exception:
-            pass
-    return get_nvidia_backup_key() or get_nvidia_api_key()
+    return _get_secret_value("KIMI_API_KEY") or get_nvidia_backup_key() or get_nvidia_api_key()
 
 
 def get_nemotron_api_key() -> Optional[str]:
     """Retrieves dedicated Nemotron API key, falling back to NVIDIA_API_KEY."""
-    load_dotenv()
-    key = os.environ.get("NEMOTRON_API_KEY")
-    if key and len(key) > 20 and not key.startswith("your-"):
-        return key
-    secrets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml")
-    if os.path.exists(secrets_path):
-        try:
-            import toml
-            secrets = toml.load(secrets_path)
-            tok = secrets.get("NEMOTRON_API_KEY")
-            if tok and len(tok) > 20 and not tok.startswith("your-"):
-                return tok
-        except Exception:
-            pass
-    return get_nvidia_api_key()
+    return _get_secret_value("NEMOTRON_API_KEY") or get_nvidia_api_key()
 
 
 def get_key_for_model(model: str) -> Optional[str]:
@@ -141,23 +101,9 @@ def get_key_for_model(model: str) -> Optional[str]:
 
 
 def get_gemini_api_key() -> Optional[str]:
-    """Retrieves the Gemini API key from env or Streamlit secrets."""
-    load_dotenv()
-    key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-    if key and len(key) > 20 and not key.startswith("your-"):
-        return key
+    """Retrieves the Gemini API key from env, Streamlit secrets, or secrets.toml."""
+    return _get_secret_value("GEMINI_API_KEY") or _get_secret_value("GOOGLE_API_KEY")
 
-    secrets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml")
-    if os.path.exists(secrets_path):
-        try:
-            import toml
-            secrets = toml.load(secrets_path)
-            tok = secrets.get("GEMINI_API_KEY") or secrets.get("GOOGLE_API_KEY")
-            if tok and len(tok) > 20 and not tok.startswith("your-"):
-                return tok
-        except Exception:
-            pass
-    return None
 
 
 COMMON_CROPS_REGEX = re.compile(
