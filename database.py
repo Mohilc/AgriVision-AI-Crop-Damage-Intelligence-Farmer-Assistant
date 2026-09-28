@@ -183,6 +183,54 @@ def get_latest_analysis_for_user(telegram_user_id: str) -> Optional[Dict[str, An
         return result
 
 
+def update_analysis_crop(
+    analysis_id: int,
+    crop_name: str,
+    possible_cause: Optional[str] = None,
+    recommended_next_steps: Optional[List[str]] = None,
+    conditions_and_remedies: Optional[str] = None
+) -> bool:
+    """Updates an existing analysis record with the confirmed crop name, cause, and remedies."""
+    init_db()
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM analyses WHERE id = ?", (analysis_id,))
+        row = cursor.fetchone()
+        if not row:
+            return False
+
+        updates = ["crop_identified = ?"]
+        params = [crop_name]
+
+        if possible_cause:
+            updates.append("possible_cause = ?")
+            params.append(possible_cause)
+
+        if recommended_next_steps:
+            updates.append("recommended_next_steps = ?")
+            params.append(json.dumps(recommended_next_steps))
+
+        try:
+            raw = json.loads(row["raw_json_response"]) if row["raw_json_response"] else {}
+            raw["crop_identified"] = crop_name
+            if possible_cause:
+                raw["possible_cause"] = possible_cause
+            if recommended_next_steps:
+                raw["recommended_next_steps"] = recommended_next_steps
+            if conditions_and_remedies:
+                raw["conditions_and_remedies"] = conditions_and_remedies
+            updates.append("raw_json_response = ?")
+            params.append(json.dumps(raw))
+        except Exception:
+            pass
+
+        params.append(analysis_id)
+        sql = f"UPDATE analyses SET {', '.join(updates)} WHERE id = ?"
+        cursor.execute(sql, params)
+        conn.commit()
+        return True
+
+
 def get_user_history(telegram_user_id: str, limit: int = 5) -> List[Dict[str, Any]]:
     """Retrieves recent history for a given Telegram user."""
     init_db()

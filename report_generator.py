@@ -53,6 +53,22 @@ def format_telegram_report(data: Dict[str, Any]) -> str:
     else:
         steps_str = "1. Monitor field regularly.\n2. Consult local agricultural officer if conditions change."
 
+    # Format conditions for damage occurrence
+    conditions = data.get("conditions_favoring_damage")
+    if conditions:
+        conditions_block = f"\n*Conditions for damage occurrence:*\n{conditions}\n"
+    else:
+        conditions_block = ""
+
+    # Format solutions & practical remedies
+    solutions = data.get("solutions_and_remedies", [])
+    if isinstance(solutions, list) and solutions:
+        solutions_block = "\n*Solutions & practical remedies:*\n" + "\n".join([f"• {s}" for s in solutions]) + "\n"
+    elif isinstance(solutions, str) and solutions.strip():
+        solutions_block = f"\n*Solutions & practical remedies:*\n{solutions}\n"
+    else:
+        solutions_block = ""
+
     msg = f"""🌱 *AGRIVISION REPORT*
 
 *Crop:*
@@ -63,7 +79,7 @@ def format_telegram_report(data: Dict[str, Any]) -> str:
 
 *Possible cause:*
 {cause}
-
+{conditions_block}{solutions_block}
 *Severity:*
 {sev_icon} {severity}
 
@@ -81,6 +97,18 @@ def format_telegram_report(data: Dict[str, Any]) -> str:
 
 ⚠️ *Note:*
 This is an AI-based visual assessment and should be treated as an initial screening, not a definitive diagnosis. Always verify with local agricultural experts (e.g., Krishi Bhavan)."""
+
+    # If crop is unknown, prompt user to clarify crop name
+    if str(crop).strip().lower() in ["unknown", "unknown crop", "unidentified", "uncertain", "none"]:
+        msg += """
+
+❓ *Crop Unidentified:*
+The AI detected visible symptoms, but the crop name could not be confirmed with certainty from this angle.
+
+👉 *Please reply with your crop name* (e.g., _Rose, Tomato, Cotton, Wheat, Rice, Chilli_).
+I will immediately report:
+🌧️ *Conditions* causing this damage to occur
+🛠️ *Tailored Remedies & Practical Solutions* for your specific crop!"""
 
     return msg
 

@@ -81,6 +81,15 @@ ANALYSIS_JSON_SCHEMA = {
             "enum": ["Low", "Medium", "High"],
             "description": "Confidence level of this visual assessment based on image lighting, resolution, and clarity."
         },
+        "conditions_favoring_damage": {
+            "type": "string",
+            "description": "Environmental and field conditions that cause or accelerate this damage (e.g. High humidity >80%, leaf wetness, warm temperatures, poor aeration, insect vectors)."
+        },
+        "solutions_and_remedies": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Tailored practical remedies and solutions (e.g. organic sprays, neem oil, pruning, biological controls, soil adjustments)."
+        },
         "recommended_next_steps": {
             "type": "array",
             "items": {"type": "string"},
@@ -152,5 +161,49 @@ SAFETY & ETHICAL GUIDELINES:
 - Always advise farmers to verify with their local agricultural extension office (e.g., Krishi Vigyan Kendra / Krishi Bhavan) for locally registered chemical products and dosages.
 - If the farmer describes visual crop symptoms without an image, explain the most likely causes and invite them to send a photo for AI vision inspection!
 - Respond warmly in the same language or bilingual style the farmer uses.
+"""
+
+
+CROP_DAMAGE_SOLUTION_AND_CONDITIONS_PROMPT = """
+You are AgriVision Agronomist, an expert in plant pathology, integrated pest management (IPM), and crop health.
+
+The farmer had previously uploaded a photo with visible damage symptoms, but the crop was unspecified.
+The farmer has now confirmed or clarified that the crop or plant is: **{crop_name}**.
+
+OBSERVED DAMAGE ASSESSMENT FROM IMAGE:
+- Visible Symptoms: {symptoms}
+- Affected Regions / Canopy: {affected_regions}
+- Observed Severity: {severity}
+- Estimated Visible Damage: {estimated_damage}
+- Initial Cause Observation: {possible_cause}
+
+YOUR OBJECTIVE:
+Generate a thorough, practical, farmer-friendly diagnostic report tailored specifically to **{crop_name}**.
+You MUST include all of the following sections:
+
+1. 🌿 **Crop & Problem Confirmation:**
+   - Confirm {crop_name} and identify the exact disease, pest, or physiological disorder (e.g., Black Spot / Diplocarpon rosae, Powdery Mildew, Early/Late Blight, Aphid infestation, Heat Stress, etc.).
+
+2. 🌧️ **Conditions Favoring Damage Occurrence:**
+   - Detail the environmental, climatic, watering, and agronomic conditions that cause or accelerate this damage on {crop_name}:
+     • Temperature range (e.g., warm weather 20°C - 30°C)
+     • Humidity & Leaf Wetness (e.g., high humidity >80%, overhead irrigation, prolonged wet foliage)
+     • Sunlight, Aeration & Spacing (e.g., dense canopy, stagnant air, lack of sunlight)
+     • Soil & Watering Conditions (e.g., poor drainage, splashing soil onto lower foliage)
+     • Secondary vectors or carriers (e.g., insects, contaminated pruning shears, uncleaned leaf debris)
+
+3. 🛠️ **Tailored Solutions & Immediate Remedies:**
+   - **Cultural & Mechanical Practices:** Pruning infected leaves, cleaning fallen diseased litter, sanitizing tools, watering at the base only.
+   - **Safe Organic & Biological Treatments:** Specific natural remedies (e.g., Neem oil spray 0.5%, baking soda / potassium bicarbonate solution, Trichoderma / Bacillus subtilis bio-fungicide, sulfur/copper dust where applicable).
+   - **Agronomic & Nutrient Adjustments:** Balanced fertilization (avoiding excess nitrogen that creates succulent vulnerable foliage), improving soil aeration and drainage.
+   - **Future Prevention:** Crop rotation, resistant varieties, adequate spacing.
+
+4. 📋 **Actionable Checklist for the Farmer:**
+   - 3-4 bullet points of what the farmer should do TODAY and in the coming days.
+
+5. ⚠️ **Advisory & Safety Notice:**
+   - Remind the farmer to test sprays on a small patch first and consult local agricultural extension officers (e.g., Krishi Bhavan / KVK) for locally approved treatments.
+
+Format your response clearly using emojis, bold headings, and bullet points. Keep it clear, encouraging, and farmer-friendly.
 """
 

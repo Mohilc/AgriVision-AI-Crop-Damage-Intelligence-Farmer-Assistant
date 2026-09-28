@@ -355,6 +355,39 @@ with tab_inspect:
             - **Confidence Level:** `{res.get('confidence', 'Medium')}`
             """)
 
+            # If crop is unknown, prompt user to clarify
+            if str(res.get("crop_identified", "")).lower() in ["unknown", "unknown crop", "none", "unidentified"]:
+                st.warning("❓ **Crop Unidentified:** AI detected symptoms and damage, but the crop name was not confirmed from this angle.")
+                c_col1, c_col2 = st.columns([3, 1])
+                with c_col1:
+                    user_crop = st.text_input("Enter your crop or plant name (e.g. Rose, Tomato, Cotton, Rice):", key="crop_clarify_input")
+                with c_col2:
+                    st.write("")
+                    st.write("")
+                    clarify_btn = st.button("🌱 Get Remedies & Conditions", key="btn_clarify_crop", use_container_width=True)
+
+                if clarify_btn and user_crop.strip():
+                    with st.spinner(f"Generating conditions and remedies for {user_crop.strip()}..."):
+                        sol = ai_analyzer.generate_crop_damage_solution_and_conditions(
+                            crop_name=user_crop.strip().title(),
+                            analysis_context=res
+                        )
+                        res["crop_identified"] = user_crop.strip().title()
+                        res["conditions_and_remedies"] = sol
+                        if res.get("id"):
+                            database.update_analysis_crop(
+                                res["id"],
+                                user_crop.strip().title(),
+                                conditions_and_remedies=sol
+                            )
+                        st.session_state["latest_web_analysis"] = res
+                        st.success(f"Updated crop to **{user_crop.strip().title()}**!")
+                        st.rerun()
+
+            if res.get("conditions_and_remedies"):
+                st.markdown("### 🌧️ Damage Conditions & Tailored Remedies")
+                st.markdown(res["conditions_and_remedies"])
+
             sub_t1, sub_t2, sub_t3 = st.tabs(["🩺 Symptoms & Regions", "📋 Action Plan", "⚠️ Limitations"])
             with sub_t1:
                 st.markdown("**Visible Diagnostic Symptoms:**")

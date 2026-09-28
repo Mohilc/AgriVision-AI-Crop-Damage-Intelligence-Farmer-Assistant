@@ -256,13 +256,61 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     """
     Handles text inquiries from farmers.
     Answers both follow-up questions for previous images AND direct general agricultural questions!
+    Supports interactive crop identification clarification when an image has unknown crop.
     Reports immediate responding status so the user knows the bot is actively working.
     """
     user = update.effective_user
     user_id = str(user.id)
     user_text = update.message.text.strip()
 
-    # Report immediately that the bot is responding
+    # Check if the user has a recent crop analysis
+    latest = database.get_latest_analysis_for_user(user_id)
+    detected_crop = ai_analyzer.extract_crop_name(user_text)
+
+    # Check if this message is clarifying an unknown or specified crop
+    is_crop_clarification = False
+    if detected_crop and latest:
+        prev_crop = str(latest.get("crop_identified", "")).strip().lower()
+        if prev_crop in ["unknown", "unknown crop", "unidentified", "none", "uncertain"]:
+            is_crop_clarification = True
+        elif any(user_text.lower().startswith(p) for p in ["crop is", "my crop", "plant is", "it is", "this is", "crop:", "plant:"]):
+            is_crop_clarification = True
+
+    if is_crop_clarification and detected_crop:
+        await update.message.reply_chat_action(constants.ChatAction.TYPING)
+        status_msg = await update.message.reply_text(
+            f"🌿 *Crop identified as {detected_crop}!* \n⏳ *Analyzing damage conditions and generating tailored solutions & remedies...*",
+            parse_mode=constants.ParseMode.MARKDOWN
+        )
+        try:
+            solution_report = ai_analyzer.generate_crop_damage_solution_and_conditions(
+                crop_name=detected_crop,
+                analysis_context=latest
+            )
+            # Update database record so crop and remedies are preserved
+            database.update_analysis_crop(
+                analysis_id=latest["id"],
+                crop_name=detected_crop,
+                conditions_and_remedies=solution_report
+            )
+            database.save_chat_message(latest["id"], user_id, "user", f"Crop: {detected_crop}")
+            database.save_chat_message(latest["id"], user_id, "assistant", solution_report)
+
+            reply_msg = f"{solution_report}\n\n📄 *Tip:* Type /report anytime to download your updated assessment as an official PDF!"
+            try:
+                await status_msg.edit_text(reply_msg, parse_mode=constants.ParseMode.MARKDOWN)
+            except Exception:
+                await status_msg.edit_text(reply_msg)
+            return
+        except Exception as e:
+            logger.error(f"Error generating crop remedies: {e}", exc_info=True)
+            try:
+                await status_msg.edit_text(f"⚠️ Error preparing remedies for {detected_crop}: {str(e)}")
+            except Exception:
+                pass
+            return
+
+    # Regular Q&A or follow-up
     await update.message.reply_chat_action(constants.ChatAction.TYPING)
     status_msg = await update.message.reply_text(
         "🌾 *AgriVision is analyzing your question...*",
@@ -270,9 +318,6 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     )
 
     try:
-        # Check if the user has a recent crop analysis
-        latest = database.get_latest_analysis_for_user(user_id)
-
         if latest:
             # Contextual follow-up grounded in the uploaded crop
             chat_history = database.get_chat_history_for_analysis(latest["id"], limit=6)

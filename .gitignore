@@ -42,3 +42,11 @@ data/uploads/*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Test artifacts
+tests/*.txt
+tests/llama_output.txt
+tests/debug_content.txt
+tests/raw_llama.txt
+tests/final_report_test.txt
+tests/sample_report_output.txt
