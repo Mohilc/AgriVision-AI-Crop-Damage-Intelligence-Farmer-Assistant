@@ -48,7 +48,8 @@ Furthermore, farmers need a simple, zero-friction interface (such as **Telegram*
                                 ▼
                   ┌───────────────────────────┐
                   │ ai_analyzer.py            │
-                  │ (Google Gemini Vision API)│
+                  │ (NVIDIA Nemotron Vision / │
+                  │  Google Gemini Fallback)  │
                   └─────────────┬─────────────┘
                                 │ Structured JSON Assessment
                                 ▼
@@ -64,11 +65,12 @@ Furthermore, farmers need a simple, zero-friction interface (such as **Telegram*
 
 ## 🛠️ Technology Stack
 
-- **AI Vision Engine:** Google Gemini 2.5 Flash / 1.5 Flash Vision Multimodal API
+- **Primary AI Reasoning Engine:** NVIDIA Nemotron-3 Nano Omni Reasoning Vision (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning`)
+- **Secondary AI Engines:** Moonshot AI (`moonshotai/kimi-k3`) & Google Gemini (`gemini-3.5-flash-lite`)
 - **Messaging Interface:** Python Telegram Bot API (`python-telegram-bot` async)
-- **Web Dashboard:** Streamlit 1.35+
-- **Database:** SQLite with thread-safe queries
-- **Image Processing:** Pillow (PIL), OpenCV
+- **Web Control Center:** Streamlit 1.64+ with 1-Click Demos & Live Agronomist Text Chat
+- **Database:** SQLite with thread-safe queries & automatic demo data seeding
+- **Image Processing:** Pillow (PIL)
 - **Reporting Engine:** ReportLab PDF Builder
 
 ---
@@ -78,15 +80,15 @@ Furthermore, farmers need a simple, zero-friction interface (such as **Telegram*
 ```
 agrivision/
 │
-├── app.py                      # Streamlit admin & evaluator web dashboard
-├── telegram_bot.py             # Telegram Bot engine with conversational follow-up
-├── ai_analyzer.py              # Gemini Vision multimodal parser & chat reasoning
+├── app.py                      # Streamlit admin & evaluator control center
+├── telegram_bot.py             # Telegram Bot engine (Photo Vision & Text Q&A)
+├── ai_analyzer.py              # NVIDIA Nemotron & Gemini multimodal analyzer
 ├── prompts.py                  # Structured prompts, system instructions & JSON schema
 ├── database.py                 # SQLite CRUD, schema migration, and analytics queries
 ├── report_generator.py         # Formats farmer-friendly Telegram reports & PDF exports
 ├── requirements.txt            # Python dependencies
 ├── README.md                   # Full documentation & setup guide
-├── .gitignore                  # Git ignore file
+├── .gitignore                  # Git ignore file (keeps .env & secrets.toml safe)
 │
 ├── .streamlit/
 │   ├── config.toml             # Streamlit visual theme styling
@@ -94,7 +96,7 @@ agrivision/
 │
 └── data/
     ├── agrivision.db           # SQLite database (created automatically)
-    └── uploads/                # Cached crop photos (created automatically)
+    └── uploads/                # Cached crop photos & generated PDFs
 ```
 
 ---
@@ -122,22 +124,23 @@ pip install -r requirements.txt
 
 ### 3. Configure API Secrets
 
-Copy `.streamlit/secrets.toml.example` to `.streamlit/secrets.toml`:
+Copy `.streamlit/secrets.toml.example` to `.streamlit/secrets.toml` or create `.env`:
 
 ```bash
 cp .streamlit/secrets.toml.example .streamlit/secrets.toml
 ```
 
-Edit `.streamlit/secrets.toml` or create a `.env` file with your credentials:
+Add your credentials to `.streamlit/secrets.toml` or `.env`:
 
 ```toml
+NVIDIA_API_KEY = "nvapi-..."
 GEMINI_API_KEY = "AIzaSy..."
 TELEGRAM_BOT_TOKEN = "123456789:ABCdef..."
 ```
 
-> **How to get keys:**
-> - **Gemini API Key:** Get free from [Google AI Studio](https://aistudio.google.com/).
-> - **Telegram Bot Token:** Message `@BotFather` on Telegram, send `/newbot`, and copy the token.
+> **API Key Safety:**
+> `.env` and `.streamlit/secrets.toml` are strictly excluded from git tracking via `.gitignore`. Your keys never get committed or pushed to GitHub.
+
 
 ---
 
