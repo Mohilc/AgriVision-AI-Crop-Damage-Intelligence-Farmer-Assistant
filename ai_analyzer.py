@@ -72,6 +72,74 @@ def get_nvidia_backup_key() -> Optional[str]:
     return None
 
 
+def get_meta_llama_api_key() -> Optional[str]:
+    """Retrieves dedicated Meta Llama API key, falling back to NVIDIA_API_KEY."""
+    load_dotenv()
+    key = os.environ.get("META_LLAMA_API_KEY")
+    if key and len(key) > 20 and not key.startswith("your-"):
+        return key
+    secrets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml")
+    if os.path.exists(secrets_path):
+        try:
+            import toml
+            secrets = toml.load(secrets_path)
+            tok = secrets.get("META_LLAMA_API_KEY")
+            if tok and len(tok) > 20 and not tok.startswith("your-"):
+                return tok
+        except Exception:
+            pass
+    return get_nvidia_api_key()
+
+
+def get_kimi_api_key() -> Optional[str]:
+    """Retrieves dedicated Kimi (Moonshot AI) API key, falling back to backup or primary key."""
+    load_dotenv()
+    key = os.environ.get("KIMI_API_KEY")
+    if key and len(key) > 20 and not key.startswith("your-"):
+        return key
+    secrets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml")
+    if os.path.exists(secrets_path):
+        try:
+            import toml
+            secrets = toml.load(secrets_path)
+            tok = secrets.get("KIMI_API_KEY")
+            if tok and len(tok) > 20 and not tok.startswith("your-"):
+                return tok
+        except Exception:
+            pass
+    return get_nvidia_backup_key() or get_nvidia_api_key()
+
+
+def get_nemotron_api_key() -> Optional[str]:
+    """Retrieves dedicated Nemotron API key, falling back to NVIDIA_API_KEY."""
+    load_dotenv()
+    key = os.environ.get("NEMOTRON_API_KEY")
+    if key and len(key) > 20 and not key.startswith("your-"):
+        return key
+    secrets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml")
+    if os.path.exists(secrets_path):
+        try:
+            import toml
+            secrets = toml.load(secrets_path)
+            tok = secrets.get("NEMOTRON_API_KEY")
+            if tok and len(tok) > 20 and not tok.startswith("your-"):
+                return tok
+        except Exception:
+            pass
+    return get_nvidia_api_key()
+
+
+def get_key_for_model(model: str) -> Optional[str]:
+    """Resolves the appropriate API key for a given model."""
+    if "llama" in model.lower():
+        return get_meta_llama_api_key()
+    elif "kimi" in model.lower():
+        return get_kimi_api_key()
+    elif "nemotron" in model.lower():
+        return get_nemotron_api_key()
+    return get_nvidia_api_key()
+
+
 def get_gemini_api_key() -> Optional[str]:
     """Retrieves the Gemini API key from env or Streamlit secrets."""
     load_dotenv()
@@ -359,13 +427,13 @@ def _call_nvidia_api(
     messages: List[Dict[str, Any]],
     model: str = NVIDIA_PRIMARY_MODEL,
     api_key: Optional[str] = None,
-    timeout: int = 35,
+    timeout: int = 45,
     max_tokens: int = 2048
 ) -> str:
     """Calls NVIDIA chat completion endpoint."""
-    key = api_key or get_nvidia_api_key()
+    key = api_key or get_key_for_model(model)
     if not key:
-        raise ValueError("NVIDIA API Key not configured.")
+        raise ValueError(f"API Key for model '{model}' not configured.")
 
     headers = {
         "Authorization": f"Bearer {key}",
